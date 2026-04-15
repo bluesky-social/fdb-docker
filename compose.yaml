@@ -5,7 +5,7 @@
 #
 # Usage from another project (compose "include"):
 #   include:
-#     - path: ../fdb-docker/docker-compose.yml
+#     - path: ../fdb-docker/compose.yaml
 #
 #   services:
 #     myapp:
