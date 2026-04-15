@@ -1,0 +1,44 @@
+# FoundationDB single-node dev cluster.
+#
+# Usage (standalone):
+#   docker compose up -d
+#
+# Usage from another project (compose "include"):
+#   include:
+#     - path: ../fdb-docker/docker-compose.yml
+#
+#   services:
+#     myapp:
+#       depends_on:
+#         fdb:
+#           condition: service_healthy
+#       volumes:
+#         - fdb-cluster:/etc/foundationdb:ro
+#
+# The "fdb-cluster" volume contains fdb.cluster pointing at 127.0.0.1.
+# Host processes use it directly. Containers reach it via the host port
+# mapping (Docker Desktop routes host.docker.internal -> host).
+#
+# Override the port if 4500 conflicts with a local FDB install:
+#   FDB_PORT=4550 docker compose up -d
+
+services:
+  fdb:
+    build: .
+    environment:
+      - FDB_PORT=${FDB_PORT:-4500}
+    ports:
+      - "${FDB_PORT:-4500}:${FDB_PORT:-4500}"
+    volumes:
+      - fdb-cluster:/var/fdb/cluster
+    tmpfs:
+      - /var/fdb/data
+    healthcheck:
+      test: ["CMD-SHELL", "fdbcli -C /var/fdb/cluster/fdb.cluster --exec 'status minimal' | grep -q available"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  fdb-cluster:
